@@ -6,8 +6,8 @@ import sys
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
 from faster_whisper import WhisperModel
-from python_service.config.settings import settings
-from python_service.core.logging import logger
+from config.settings import settings
+from core.logging import logger
 
 # Windows üzerinde alt süreçlerde CUDA DLL yollarını ekler (GPU kullanımı için)
 if sys.platform == "win32":

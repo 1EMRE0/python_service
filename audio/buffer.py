@@ -1,6 +1,6 @@
 # python_service/audio/buffer.py
-from python_service.config.settings import settings
-from python_service.core.logging import logger
+from config.settings import settings
+from core.logging import logger
 
 
 class AudioBuffer:

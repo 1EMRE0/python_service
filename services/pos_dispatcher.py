@@ -1,7 +1,7 @@
 # python_service/services/pos_dispatcher.py
 import httpx
-from python_service.schemas.order import OrderSchema
-from python_service.core.logging import logger
+from schemas.order import OrderSchema
+from core.logging import logger
 
 
 class POSDispatcher:

@@ -3,15 +3,15 @@ import json
 from concurrent.futures import ProcessPoolExecutor
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from python_service.audio.buffer import AudioBuffer
-from python_service.core.fsm import SessionFSM
-from python_service.core.logging import logger
-from python_service.llm.json_extractor import LLMJsonExtractor
-from python_service.schemas.state import SessionState
-from python_service.services.intent_service import IntentService
-from python_service.services.pos_dispatcher import POSDispatcher
-from python_service.stt.whisper_engine import WhisperSTTEngine
-from python_service.tts.piper_engine import PiperTTSEngine
+from audio.buffer import AudioBuffer
+from core.fsm import SessionFSM
+from core.logging import logger
+from llm.json_extractor import LLMJsonExtractor
+from schemas.state import SessionState
+from services.intent_service import IntentService
+from services.pos_dispatcher import POSDispatcher
+from stt.whisper_engine import WhisperSTTEngine
+from tts.piper_engine import PiperTTSEngine
 
 router = APIRouter()
 

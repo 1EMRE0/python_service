@@ -16,9 +16,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import uvicorn
 
-from python_service.api.v1.websocket import process_executor, router as ws_router
-from python_service.config.settings import settings
-from python_service.core.logging import logger, setup_logging
+from api.v1.websocket import process_executor, router as ws_router
+from config.settings import settings
+from core.logging import logger, setup_logging
 
 
 @asynccontextmanager
@@ -56,7 +56,7 @@ async def health_check():
 
 if __name__ == "__main__":
     uvicorn.run(
-        "python_service.main:app",
+        "main:app",
         host=settings.WS_HOST,
         port=settings.WS_PORT,
         reload=settings.DEBUG

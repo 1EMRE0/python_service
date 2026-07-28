@@ -1,6 +1,6 @@
 # python_service/core/fsm.py
-from python_service.schemas.state import SessionState
-from python_service.core.logging import logger
+from schemas.state import SessionState
+from core.logging import logger
 
 
 class SessionFSM:

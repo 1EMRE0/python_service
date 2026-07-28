@@ -1,6 +1,6 @@
 # python_service/services/intent_service.py
 import re
-from python_service.core.logging import logger
+from logging import logger
 
 
 class IntentService:

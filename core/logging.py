@@ -1,7 +1,7 @@
 # python_service/core/logging.py
 import sys
 from loguru import logger
-from python_service.config.settings import settings
+from config.settings import settings
 
 
 def setup_logging():

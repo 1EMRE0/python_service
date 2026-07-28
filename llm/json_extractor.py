@@ -1,8 +1,8 @@
 # python_service/llm/json_extractor.py
 import httpx
-from python_service.config.settings import settings
-from python_service.schemas.order import OrderSchema
-from python_service.core.logging import logger
+from config.settings import settings
+from schemas.order import OrderSchema
+from core.logging import logger
 
 
 class LLMJsonExtractor:
