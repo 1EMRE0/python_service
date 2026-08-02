@@ -8,6 +8,7 @@ from core.fsm import SessionFSM
 from core.logging import logger
 from llm.json_extractor import LLMJsonExtractor
 from schemas.state import SessionState
+from schemas.confirmation import ConfirmationIntent
 from services.intent_service import IntentService
 from services.pos_dispatcher import POSDispatcher
 from stt.whisper_engine import WhisperSTTEngine
@@ -85,29 +86,58 @@ async def websocket_audio_endpoint(websocket: WebSocket, device_id: str):
                         audio_buffer.clear()
 
                         logger.info(f"Onay Yanıtı Metni: '{confirmation_text}'")
-                        is_confirmed = intent_service.analyze_confirmation(confirmation_text)
+                        confirmation_result = intent_service.analyze_confirmation(
+    confirmation_text
+)
 
-                        if is_confirmed:
+                        if confirmation_result == ConfirmationIntent.CONFIRMED:
+
                             fsm.transition_to(SessionState.PROCESSING_JSON)
-                            # Siparişi LLM ile JSON yap
-                            order_json = await llm_extractor.extract_order(fsm.cached_order_text)
-                            
-                            # Web/POS sistemine ilet
-                            await pos_dispatcher.dispatch_order(order_json)
 
-                            # ESP32'ye Başarı Bildirimi Gönder
-                            success_audio = await tts_engine.synthesize("Siparişiniz alındı, hazırlanıyor.")
+                            # Siparişi JSON'a dönüştür
+                            order_json = await llm_extractor.extract_order(
+                                fsm.cached_order_text
+                            )
+
+                            # POS sistemine gönder
+                            await pos_dispatcher.dispatch_order(
+                             order_json,
+                             device_id
+                            )
+
+                            # ESP32'ye bilgi ver
+                            success_audio = await tts_engine.synthesize(
+                                "Siparişiniz alındı, hazırlanıyor."
+                            )
+
                             await websocket.send_text(json.dumps({
-    "type": "command",
-    "payload": "SIPARIS_ONAYLANDI" # ESP32 C kodu payload'u string olarak beklediği için burayı string'e çevirdik.
-}))
+                                "type": "command",
+                                "payload": "SIPARIS_ONAYLANDI"
+                            }))
+
                             await websocket.send_bytes(success_audio)
+
                             fsm.reset()
-                        else:
-                            # Kullanıcı Hayır/İptal Dedi
-                            cancel_audio = await tts_engine.synthesize("Sipariş iptal edildi. Yeni siparişinizi verebilirsiniz.")
+
+                        elif confirmation_result == ConfirmationIntent.REJECTED:
+
+                            cancel_audio = await tts_engine.synthesize(
+                                "Sipariş iptal edildi. Yeni siparişinizi verebilirsiniz."
+                            )
+
                             await websocket.send_bytes(cancel_audio)
+
                             fsm.reset()
+
+                        else:
+
+                            unknown_audio = await tts_engine.synthesize(
+                                "Cevabınızı anlayamadım. Lütfen sadece evet veya hayır diyiniz."
+                            )
+
+                            await websocket.send_bytes(unknown_audio)
+
+                            fsm.transition_to(SessionState.LISTENING_CONFIRMATION)
 
             # 2. Ham Ses Paketi (Binary Chunk) Geldiyse
             elif "bytes" in message:

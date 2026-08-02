@@ -27,7 +27,7 @@ class POSDispatcher:
         numbers = ''.join(filter(str.isdigit, device_id))
         return f"Masa {numbers}" if numbers else device_id
 
-    async def dispatch_order(self, order: OrderSchema, device_id: str = "Masa 1") -> bool:
+    async def dispatch_order(self, order: OrderSchema, device_id: str = str) -> bool:
         """
         Siparişi ASP.NET Core POS sisteminin beklediği DTO formatına çevirip POST eder.
         """
