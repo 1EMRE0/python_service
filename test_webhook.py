@@ -1,6 +1,6 @@
 import requests
 
-TARGET_IP = "192.168.1.104"
+TARGET_IP = "127.0.0.1"
 PORT = 5095
 ENDPOINT = "/api/orders/create"
 URL = f"http://{TARGET_IP}:{PORT}{ENDPOINT}"

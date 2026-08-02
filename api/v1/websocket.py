@@ -35,7 +35,10 @@ async def websocket_audio_endpoint(websocket: WebSocket, device_id: str):
 
     try:
         while True:
+            
             message = await websocket.receive()
+
+            logger.info(f"Gelen ham veri anahtarları: {list(message.keys())}")
 
             
             # 1. Metin/Kontrol Paketi Geldiyse (JSON)
@@ -53,7 +56,7 @@ async def websocket_audio_endpoint(websocket: WebSocket, device_id: str):
                         fsm.transition_to(SessionState.PROCESSING_STT)
                         transcribed_text = await stt_engine.transcribe(audio_buffer.get_bytes())
                         audio_buffer.clear()
-
+                        logger.info(f"Whisper Ham Çıktısı: [{repr(transcribed_text)}]")
                         if not transcribed_text:
                             # STT boş metin dönerse
                             fsm.reset()
@@ -70,9 +73,9 @@ async def websocket_audio_endpoint(websocket: WebSocket, device_id: str):
                         audio_response = await tts_engine.synthesize(confirm_prompt)
 
                         await websocket.send_text(json.dumps({
-                            "event": "PLAYBACK_START",
-                            "text": confirm_prompt
-                        }))
+    "type": "tts_start",
+    "text": confirm_prompt
+}))
                         await websocket.send_bytes(audio_response)
                         fsm.transition_to(SessionState.LISTENING_CONFIRMATION)
 
@@ -95,9 +98,9 @@ async def websocket_audio_endpoint(websocket: WebSocket, device_id: str):
                             # ESP32'ye Başarı Bildirimi Gönder
                             success_audio = await tts_engine.synthesize("Siparişiniz alındı, hazırlanıyor.")
                             await websocket.send_text(json.dumps({
-                                "event": "ORDER_SUCCESS",
-                                "payload": order_json.model_dump()
-                            }))
+    "type": "command",
+    "payload": "SIPARIS_ONAYLANDI" # ESP32 C kodu payload'u string olarak beklediği için burayı string'e çevirdik.
+}))
                             await websocket.send_bytes(success_audio)
                             fsm.reset()
                         else:

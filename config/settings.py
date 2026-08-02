@@ -32,9 +32,10 @@ class Settings(BaseSettings):
         env_file = ".env"
 
     # POS / Webhook Ayarları
-POS_TARGET_IP = "192.168.1.104"
+# POS / Webhook Ayarları
+POS_TARGET_IP = "127.0.0.1"
 POS_PORT = 5095
 POS_ENDPOINT = "/api/orders/create"
-POS_API_URL = f"http://{POS_TARGET_IP}:{POS_PORT}{POS_ENDPOINT}"    
+POS_API_URL = f"http://{POS_TARGET_IP}:{POS_PORT}{POS_ENDPOINT}"   
 
 settings = Settings()
