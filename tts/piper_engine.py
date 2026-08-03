@@ -3,6 +3,9 @@ import asyncio
 from pathlib import Path
 from config.settings import settings
 from core.logging import logger
+import wave
+import shutil
+import sys
 
 
 class PiperTTSEngine:
@@ -28,6 +31,8 @@ class PiperTTSEngine:
             return b""
 
         try:
+            logger.info(f"Python executable : {sys.executable}")
+            logger.info(f"Piper path        : {shutil.which('piper')}")
             cmd = [
                 "piper",
                 "--model", self.model_path,
@@ -40,8 +45,25 @@ class PiperTTSEngine:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
+            stdout,stderr = await proc.communicate(
+                input = (text + "\n").encode("cp1254")
+            )
+            with open("test.pcm", "wb") as f:
+                f.write(stdout)
 
-            stdout, stderr = await proc.communicate(input=text.encode("utf-8"))
+            with wave.open("test.wav", "wb") as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)      # 16-bit
+                wav.setframerate(22050)
+                wav.writeframes(stdout)    
+                
+            logger.info(f"Piper Return Code : {proc.returncode}")
+            logger.info(f"PCM Size         : {len(stdout)} bytes")
+
+            if stderr:
+                logger.warning(stderr.decode("utf-8", errors="ignore"))
+
+            
 
             if proc.returncode != 0:
                 logger.error(f"Piper TTS Alt Süreç Hatası: {stderr.decode('utf-8', errors='ignore')}")

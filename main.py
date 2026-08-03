@@ -1,6 +1,11 @@
 # python_service/main.py
 import os
 import sys
+import sys
+import shutil
+
+print("Python:", sys.executable)
+print("PATH:", shutil.which("piper"))
 
 # Windows üzerinde sanal ortamdaki NVIDIA CUDA DLL'lerini sisteme tanıtır
 if sys.platform == "win32":
