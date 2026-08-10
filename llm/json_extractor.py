@@ -1,4 +1,3 @@
-# python_service/llm/json_extractor.py
 import httpx
 from config.settings import settings
 from schemas.order import OrderSchema
@@ -12,30 +11,60 @@ class LLMJsonExtractor:
     """
     def __init__(self):
         self.ollama_url = f"{settings.OLLAMA_BASE_URL}/api/generate"
+        self.menu_items = [
+            "Hamburger", "Pizza", "Kola", "Margarita Pizza", 
+            "Cheeseburger", "Zero Kola", "Ayran", "Su", 
+            "Çay", "Türk Kahvesi", "Filtre Kahve", "San Sebastian", 
+            "Sufle", "Americano", "Bitki Çayı", "Sıcak Çikolata", "Latte"
+        ]
+
+    def _generate_prompt(self, text: str) -> str:
+        menu_str = ", ".join([f'"{item}"' for item in self.menu_items])    
+
+        prompt = f"""### ROL VEYA GÖREV
+Sen profesyonel bir restoran sipariş ayrıştırıcısısın.
+Görevin, Türkçe ses tanıma (STT) metnini analiz ederek müşterinin sipariş ettiği ürünleri ve adetlerini çıkarmaktır.
+
+### MEVCUT RESTORAN MENÜSÜ
+[{menu_str}]
+
+### KESİN KURALLAR
+1. **İSİM KİLİTLEME:** Yanıtındaki `name` alanı KESİNLİKLE yukarıda verilen MEVCUT RESTORAN MENÜSÜ listesindeki isimlerle HARFİ HARFİNE AYNI olmalıdır.
+
+2. **TÜRKÇE OKUNUŞ & STT DÜZELTME REHBERİ:** 
+   Ses tanıma sistemi yabancı isimli ürünleri Türkçe okunuşlarıyla ("çiz burger" gibi) metne dökebilir. Bunları menüdeki orijinal isimlerine dönüştür:
+   - "çiz burger", "çizburger", "cizburger", "peynirli burger" -> "Cheeseburger"
+   - "hamburger", "hanburger", "hemburger" -> "Hamburger"
+   - "sen sebastyan", "sen sebatyan", "san sebatyan" -> "San Sebastian"
+   - "filtre kehve", "filtre kave" -> "Filtre Kahve"
+   - "pitsa", "piza" -> "Pizza"
+   - "dezir okul", "dekir", "zero kola" -> "Zero Kola"
+   - "amerikanı", "amerikano" -> "Americano"
+   - "suflör", "sufle" -> "Sufle"
+
+3. **ADET MANTIĞI:** Metinde geçen adetleri sayıya çevir ("iki" -> 2). Eğer adet belirtilmemişse varsayılan olarak 1 al.
+4. **ÇIKTI BİÇİMİ:** Sadece istenen JSON yapısını döndür. Açıklama veya ekstra metin yazma.
+
+### SİPARİŞ METNİ
+"{text}"
+"""
+        return prompt
 
     async def extract_order(self, text: str) -> OrderSchema:
         if not text:
             logger.warning("LLM'e boş metin gönderildi, boş sipariş döndürülüyor.")
             return OrderSchema(items=[])
 
-        prompt = f"""Sen bir restoran sipariş ayrıştırıcısısın.
-Aşağıdaki ses tanıma (STT) çıktısından sipariş edilen ürünleri ve adetlerini çıkar.
-
-ÖNEMLİ KURAL: Ses tanıma sistemi kelimeleri yanlış algılamış olabilir. 
-(Örneğin "dezir okul", "dekir", "dezir" gibi anlamsız ifadeler "zero kola" anlamına gelir. "pitsa" -> "pizza" vb.)
-Ürün isimlerini standart restoran menüsü ürün adlarına (hamburger, zero kola, pizza vb.) dönüştür.
-
-Sipariş Cümlesi: "{text}"
-"""
+        prompt_text = self._generate_prompt(text)
 
         payload = {
             "model": settings.LLM_MODEL_NAME,
-            "prompt": prompt,
+            "prompt": prompt_text,
             "format": OrderSchema.model_json_schema(),
             "stream": False
         }
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             try:
                 response = await client.post(self.ollama_url, json=payload)
                 response.raise_for_status()

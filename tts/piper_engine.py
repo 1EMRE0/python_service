@@ -6,6 +6,7 @@ from core.logging import logger
 import wave
 import shutil
 import sys
+import numpy as np
 
 
 class PiperTTSEngine:
@@ -48,6 +49,14 @@ class PiperTTSEngine:
             stdout,stderr = await proc.communicate(
                 input = (text + "\n").encode("cp1254")
             )
+            # Dijital ses seviyesini artır
+            samples = np.frombuffer(stdout, dtype=np.int16)
+
+            gain = 2.0   # 1.5 ile başlayabilirsin, sonra 2.0, 2.5 diye artır
+
+            samples = np.clip(samples.astype(np.float32) * gain, -32768, 32767)
+
+            stdout = samples.astype(np.int16).tobytes()
             with open("test.pcm", "wb") as f:
                 f.write(stdout)
 

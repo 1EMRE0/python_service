@@ -107,7 +107,7 @@ async def websocket_audio_endpoint(websocket: WebSocket, device_id: str):
 
                             # ESP32'ye bilgi ver
                             success_audio = await tts_engine.synthesize(
-                                "Siparişiniz alındı, hazırlanıyor."
+                                "Teşekkür ederiz.Siparişiniz alındı, hazırlanıyor."
                             )
 
                             await websocket.send_text(json.dumps({

@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     WS_PORT: int = 8000
     
     # Audio Settings
-    SAMPLE_RATE: int = 16000
+    SAMPLE_RATE: int = 22050
     CHANNELS: int = 1
     CHUNK_SIZE: int = 1024
     
